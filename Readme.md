@@ -36,9 +36,8 @@ Ce projet est un assistant conversationnel qui permet aux utilisateurs de poser 
 
 1. Clonez ce dépôt :
 bash
-git clone https://github.com/medsaa0/constitutionRAG.git
-cd constitutionRAG
-
+git clone https://github.com/mohammedouriarhi23-creator/ConstitutionRag-ChatBot.git
+cd ConstitutionRag-ChatBot
 
 2. Créez un environnement virtuel et activez-le :
 bash
