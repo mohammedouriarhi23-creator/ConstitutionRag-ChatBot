@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Constitution du Maroc - Assistant Digital</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-scale-balanced"></i>
+            </div>
+            <h1>Assistant Constitution Marocaine</h1>
+            <p class="subtitle">Vos questions sur la Constitution du Royaume du Maroc</p>
+        </header>
+
+        <div class="search-container">
+            <div class="input-group">
+                <input type="text" id="question-input" placeholder="Posez votre question sur la Constitution..." required>
+                <button id="send-button" type="button"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+
+        <div id="chat-container">
+            <!-- Les messages s'afficheront ici -->
+        </div>
+
+        <footer>
+            <p>&copy; 2025 - Assistant Constitution Marocaine</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const questionInput = document.getElementById('question-input');
+            const sendButton = document.getElementById('send-button');
+            const chatContainer = document.getElementById('chat-container');
+
+            // Fonction pour ajouter un message utilisateur
+            function addUserMessage(message) {
+                const userDiv = document.createElement('div');
+                userDiv.className = 'message user-message';
+                userDiv.innerHTML = `
+                    <div class="message-header">
+                        <i class="fas fa-user"></i>
+                        <h3>Vous</h3>
+                    </div>
+                    <div class="message-content">
+                        <p>${message}</p>
+                    </div>
+                `;
+                chatContainer.appendChild(userDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            // Fonction pour ajouter un message de réponse
+            function addResponseMessage(response, source) {
+                const responseDiv = document.createElement('div');
+                responseDiv.className = 'message response-message';
+                responseDiv.innerHTML = `
+                    <div class="message-header">
+                        <i class="fas fa-comment-dots"></i>
+                        <h3>Réponse</h3>
+                    </div>
+                    <div class="message-content">
+                        <p>${response}</p>
+                    </div>
+                    <div class="message-footer">
+                        <p class="info-text">Source: ${source}</p>
+                    </div>
+                `;
+                chatContainer.appendChild(responseDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            // Fonction pour ajouter un message d'erreur
+            function addErrorMessage(error) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'message error-message';
+                errorDiv.innerHTML = `
+                    <div class="message-header">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <h3>Erreur</h3>
+                    </div>
+                    <div class="message-content">
+                        <p>${error}</p>
+                    </div>
+                `;
+                chatContainer.appendChild(errorDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            // Fonction pour ajouter un message de chargement
+            function addLoadingMessage() {
+                const loadingDiv = document.createElement('div');
+                loadingDiv.className = 'message loading-message';
+                loadingDiv.id = 'loading-message';
+                loadingDiv.innerHTML = `
+                    <div class="message-header">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <h3>En cours de traitement...</h3>
+                    </div>
+                    <div class="message-content">
+                        <p>Recherche dans la Constitution Marocaine...</p>
+                    </div>
+                `;
+                chatContainer.appendChild(loadingDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                return loadingDiv;
+            }
+
+            // Fonction pour envoyer la question
+            function sendQuestion() {
+                const question = questionInput.value.trim();
+                if (!question) return;
+
+                // Ajouter le message de l'utilisateur
+                addUserMessage(question);
+                
+                // Ajouter un message de chargement
+                const loadingMessage = addLoadingMessage();
+                
+                // Désactiver le bouton pendant le chargement
+                sendButton.disabled = true;
+                
+                // Envoyer la requête AJAX
+                fetch('/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question: question }),
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erreur de serveur');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Supprimer le message de chargement
+                    loadingMessage.remove();
+                    
+                    // Ajouter la réponse
+                    addResponseMessage(data.response, data.sources);
+                    
+                    // Vider l'input et réactiver le bouton
+                    questionInput.value = '';
+                    sendButton.disabled = false;
+                    questionInput.focus();
+                })
+                .catch(error => {
+                    // Supprimer le message de chargement
+                    loadingMessage.remove();
+                    
+                    // Afficher l'erreur
+                    addErrorMessage('Une erreur est survenue lors de la communication avec le serveur. Veuillez réessayer.');
+                    
+                    // Réactiver le bouton
+                    sendButton.disabled = false;
+                });
+            }
+
+            // Événements
+            sendButton.addEventListener('click', sendQuestion);
+            
+            // Envoyer la question en appuyant sur Entrée
+            questionInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendQuestion();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+flask
+faiss-cpu
+numpy
+sentence-transformers
+groq
+transformers
+torch
